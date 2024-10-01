@@ -1,25 +1,33 @@
 import type { NextFunction, Request, Response } from 'express';
 import { clerkClient, getAuth } from '@clerk/express';
+import prisma from './prisma';
 
-
-// Middleware to protect routes and retrieve user info
 export const clerkAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Get the auth context from the request using Clerk
     const { userId } = getAuth(req);
 
-    // If no userId is found, it means the user is not authenticated
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized access. Please sign in.' });
     }
 
-    // Fetch the user information from Clerk API
-    const user = await clerkClient.users.getUser(userId);
+    const clerkUser = await clerkClient.users.getUser(userId);
 
-    // Attach the user to the request object for further use in the route
+    let user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+    });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          clerkId: userId,
+          email: clerkUser.emailAddresses[0].emailAddress,
+          name: clerkUser.firstName + ' ' + clerkUser.lastName,
+        },
+      });
+    }
+
     req.user = user;
 
-    // Proceed to the next middleware or route handler
     next();
   } catch (error) {
     console.error('Error in Clerk authentication middleware:', error);

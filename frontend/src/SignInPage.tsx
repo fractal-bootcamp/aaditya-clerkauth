@@ -5,7 +5,7 @@ const SignInPage = () => {
   return (
     <div>
       <h1>Please Sign In</h1>
-      <SignIn />
+      <SignIn redirectUrl="/protected" />
     </div>
   );
 };
