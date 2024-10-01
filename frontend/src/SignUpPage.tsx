@@ -5,7 +5,7 @@ const SignUpPage = () => {
   return (
     <div>
       <h1>Create an Account</h1>
-      <SignUp />
+      <SignUp redirectUrl="/protected" />
     </div>
   );
 };
